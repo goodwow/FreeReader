@@ -9,7 +9,7 @@ namespace FreeReader.Models
 {
     public class Content
     {
-        public int Index { get; set; }
+        public int Chapter { get; set; }
         public String Text { get; set; }
         public String Header { get; set; }
         public Boolean IsHeader { get; set; }

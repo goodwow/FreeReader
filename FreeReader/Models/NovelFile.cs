@@ -53,7 +53,7 @@ namespace FreeReader.Models
                     {
                         index++;
                     }
-                    content.Index = index;
+                    content.Chapter = index;
                     novel.Add(content);
                 }
             }

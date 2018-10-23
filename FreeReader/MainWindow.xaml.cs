@@ -1,7 +1,6 @@
 ﻿using FreeReader.HotKey;
 using FreeReader.Models;
 using FreeReader.Properties;
-using FreeReader.Utils;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -30,16 +29,8 @@ namespace FreeReader
         /// </summary>
         private Dictionary<EHotKeySetting, int> m_HotKeySettings = new Dictionary<EHotKeySetting, int>();
 
-        private ListBoxWrapper editor;
-        private ListBoxWrapper sidebar;
-
-        private KeyHandler headerListBoxHandler;
-        private KeyHandler paragraphListBoxHandler;
-
-        private int m_CurrentNovelIndex = 0;
-
         private ObservableCollection<Content> m_NovelConents = new ObservableCollection<Content>();
-        private ObservableCollection<Content> m_NovelHeaders = new ObservableCollection<Content>();
+        private ObservableCollection<Content> m_NovelChapters = new ObservableCollection<Content>();
         private ObservableCollection<Content> m_CurNovelContents = new ObservableCollection<Content>();
 
         public ObservableCollection<Content> CurNovelContents
@@ -50,15 +41,15 @@ namespace FreeReader
             }
         }
 
-        public ObservableCollection<Content> NovelHeaders
+        public ObservableCollection<Content> NovelChapters
         {
             get
             {
-                return m_NovelHeaders;
+                return m_NovelChapters;
             }
         }
 
-        #region 页面初始化
+        #region 初始化
 
         /// <summary>
         /// 构造函数
@@ -66,12 +57,6 @@ namespace FreeReader
         public MainWindow()
         {
             InitializeComponent();
-
-            editor = new Reader(ParagraphListBox);
-            sidebar = new Sidebar(HeaderListBox);
-
-            headerListBoxHandler = new HeaderListBoxKeyHandler(sidebar, editor);
-            paragraphListBoxHandler = new ParagraphListBoxKeyHandler(editor, sidebar);
 
             this.Width = SettingsManager.Instance.ReadSettings.WindowWidth;
             this.Height = SettingsManager.Instance.ReadSettings.WindowHeight;
@@ -87,8 +72,8 @@ namespace FreeReader
             HotKeySettingsManager.Instance.RegisterGlobalHotKeyEvent += Instance_RegisterGlobalHotKeyEvent;
             SettingsManager.Instance.ReadSettings.PropertyChanged += ReadSettings_PropertyChanged;
 
-            LoadLastFile();
             SetWindowOpacity();
+            LoadLastFile();
         }
 
         /// <summary>
@@ -117,24 +102,6 @@ namespace FreeReader
                 default:
                     break;
             }
-
-            //int totalParagraphs = editor.LineCount();
-            //int currentParagraph = editor.CurrentLine() + 1;
-
-            //int totalChapters = sidebar.LineCount();
-            //int currentChapter = sidebar.CurrentLine() + 1;
-
-            //if (currentParagraph == totalParagraphs)
-            //{
-            //    StatusTextBox.Text = "你已经看完了！";
-            //}
-            //else
-            //{
-            //    double percentage = ((double)currentParagraph / totalParagraphs) * 100.0;
-
-            //    StatusTextBox.Text = String.Format("你在第{2}/{3}段，{0}/{1}章，已经看了{4:F}%",
-            //            currentChapter, totalChapters, currentParagraph, totalParagraphs, percentage);
-            //}
         }
 
         /// <summary>
@@ -176,6 +143,11 @@ namespace FreeReader
 
         #region 目录正文
 
+        /// <summary>
+        /// 打开拖动到阅读器的文件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ParagraphListBox_Drop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -187,83 +159,119 @@ namespace FreeReader
 
         private void HeaderListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            editor.FocusOnLineItem(sidebar.CurrentLineItem());
-            editor.Focus();
-
-            // save settings
-            SettingsManager.Instance.ReadSettings.LastFileChapter = sidebar.CurrentLine();
-            SettingsManager.Instance.ReadSettings.LastFileLineNum = editor.CurrentLine();
-        }
-
-        private void ParagraphListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            //App app = (App)Application.Current;
-
-            //// empty headers
-            //if (app.Headers.Count < 1)
-            //{
-            //    return;
-            //}
-
-            //// find nearest chapter
-            //object header = app.Headers.First();
-
-            //for (int i = editor.CurrentLine(); i >= 0; i--)
-            //{
-            //    if (app.Novel[i].IsHeader)
-            //    {
-            //        header = i;
-            //        break;
-            //    }
-            //}
-
-            //// select chapter
-            //sidebar.FocusOnLineItem(header);
-
-            //// save settings
-            //SettingsManager.Instance.ReadSettings.LastFileChapter = sidebar.CurrentLine();
-            //SettingsManager.Instance.ReadSettings.LastFileLineNum = editor.CurrentLine();
+            Content selectItem = (Content)HeaderListBox.SelectedItem;
+            SettingsManager.Instance.ReadSettings.LastFileLineNum = m_NovelConents.IndexOf(selectItem);
+            LoadDefaultContent(SettingsManager.Instance.ReadSettings.LastFileLineNum);
         }
 
         private void ParagraphListBox_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
-            var lb = sender as ListBox;
-            foreach (var lbi in lb.Items)
+            if (m_CurNovelContents.Count > 0)
             {
-                var container = lb.ItemContainerGenerator.ContainerFromItem(lbi) as ListBoxItem;
-                if (container != null && IsUserVisible(container, lb))
+                if (e.VerticalChange <= 0)
                 {
-                    Content topItem = container.Content as Content;
-                    return;
+                    //判断是否滚动到顶部
+                    if (e.VerticalOffset == 0 && e.VerticalChange != 0)
+                    {
+                        AddContentToRead(m_CurNovelContents[0], e.VerticalChange <= 0);
+                    }
+                }
+                else
+                {
+                    //判断是否滚动到底部
+                    if (IsVerticalScrollBarAtButtom(e.OriginalSource as ScrollViewer))
+                    {
+                        AddContentToRead(m_CurNovelContents[m_CurNovelContents.Count - 1], e.VerticalChange <= 0);
+                    }
                 }
             }
         }
 
-        private void HeaderListBox_KeyDown(object sender, KeyEventArgs e)
+        /// <summary>
+        /// 将小说内容加载到阅读器
+        /// </summary>
+        /// <param name="curItem"></param>
+        /// <param name="scrollUp"></param>
+        private void AddContentToRead(Content curItem, bool scrollUp)
         {
-            e.Handled = headerListBoxHandler.Handle(e);
+            //需要加载的章节
+            int index = scrollUp ? curItem.Chapter - 1 : curItem.Chapter + 1;
+            index = index < 0 ? 0 : index;
+            //判断章节是否已经加载
+            Content addItem = new Content("");
+            addItem.Chapter = index;
+            bool exist = m_CurNovelContents.Contains(addItem, new IndexIsExistComparer());
+            if (!exist)
+            {
+                //判断章节是否存在
+                List<Content> contents = m_NovelConents.Where(e =>
+                {
+                    return e.Chapter == index;
+                }).ToList();
+                if (contents.Count > 0)
+                {
+                    contents.Reverse();
+                    int addIndex = m_CurNovelContents.IndexOf(curItem);
+                    addIndex = scrollUp ? addIndex - 1 : addIndex + 1;
+                    if (addIndex < 0)
+                    {
+                        addIndex = 0;
+                    }
+                    foreach (var item in contents)
+                    {
+                        m_CurNovelContents.Insert(addIndex, item);
+                    }
+                }
+            }
         }
 
-        private void ParagraphListBox_KeyDown(object sender, KeyEventArgs e)
+        private bool IsVerticalScrollBarAtButtom(ScrollViewer s)
         {
-            e.Handled = paragraphListBoxHandler.Handle(e);
+            bool isAtButtom = false;
+            double dVer = s.VerticalOffset;
+            double dViewport = s.ViewportHeight;
+            double dExtent = s.ExtentHeight;
+            if (dVer != 0)
+            {
+                if (dVer + dViewport == dExtent)
+                {
+                    isAtButtom = true;
+                }
+                else
+                {
+                    isAtButtom = false;
+                }
+            }
+            else
+            {
+                isAtButtom = false;
+            }
+            if (s.VerticalScrollBarVisibility == ScrollBarVisibility.Disabled || s.VerticalScrollBarVisibility == ScrollBarVisibility.Hidden)
+            {
+                isAtButtom = true;
+            }
+            return isAtButtom;
         }
 
-        private void ScrollToLine(int lineNum, int chapterNum)
+        private void UpdateStatus()
         {
-            sidebar.FocusOnLine(chapterNum);
-            editor.FocusOnLine(lineNum);
-            editor.Focus();
-        }
+            //int totalParagraphs = editor.LineCount();
+            //int currentParagraph = editor.CurrentLine() + 1;
 
-        private bool IsUserVisible(FrameworkElement element, FrameworkElement container)
-        {
-            if (!element.IsVisible)
-                return false;
-            Rect bounds = element.TransformToAncestor(container).TransformBounds(new Rect(0.0, 0.0, element.ActualWidth, element.ActualHeight));
-            Rect rect = new Rect(0.0, 0.0, container.ActualWidth, container.ActualHeight);
-            Rect fudgybounds = new Rect(new Point(bounds.TopLeft.X, bounds.TopLeft.Y), new Point(bounds.BottomRight.X, bounds.BottomRight.Y - 5));
-            return rect.Contains(fudgybounds.TopLeft) || rect.Contains(fudgybounds.BottomRight);
+            //int totalChapters = sidebar.LineCount();
+            //int currentChapter = sidebar.CurrentLine() + 1;
+
+            //if (currentParagraph == totalParagraphs)
+            //{
+            //    StatusTextBox.Text = "你已经看完了！";
+            //}
+            //else
+            //{
+            //    double percentage = ((double)currentParagraph / totalParagraphs) * 100.0;
+
+            //    StatusTextBox.Text = String.Format("你在第{2}/{3}段，{0}/{1}章，已经看了{4:F}%",
+            //            currentChapter, totalChapters, currentParagraph, totalParagraphs, percentage);
+            //}
         }
 
         #endregion
@@ -306,30 +314,24 @@ namespace FreeReader
             LoadFile(fileDialog.FileName);
         }
 
-        private bool OpenAndLoadFile(string path)
+        private void LoadFile(string filename)
         {
-            if (String.IsNullOrEmpty(path))
-                return false;
-
-            this.m_NovelConents.Clear();
-            this.m_CurNovelContents.Clear();
-            this.m_NovelHeaders.Clear();
-
-            NovelFile.Open(path, this.m_NovelConents);
-            foreach (Content c in this.m_NovelConents)
+            try
             {
-                if (c.IsHeader)
+                if (OpenAndLoadFile(filename))
                 {
-                    this.m_NovelHeaders.Add(c);
-                }
-                if (c.Index <= 3)
-                {
-                    this.m_CurNovelContents.Add(c);
+                    LoadDefaultContent(0);
+
+                    SettingsManager.Instance.ReadSettings.LastFilePath = filename;
+                    SettingsManager.Instance.ReadSettings.LastFileLineNum = 0;
                 }
             }
-            this.Title = "FreeReader - " + path;
-
-            return true;
+            catch (FileNotFoundException e)
+            {
+                SettingsManager.Instance.ReadSettings.LastFilePath = "";
+                SettingsManager.Instance.ReadSettings.LastFileLineNum = -1;
+                MessageBox.Show("你选择的文件： " + e.FileName + " 读取遇到了问题。", "读取文件错误！");
+            }
         }
 
         private void LoadLastFile()
@@ -338,42 +340,58 @@ namespace FreeReader
             {
                 if (OpenAndLoadFile(SettingsManager.Instance.ReadSettings.LastFilePath))
                 {
-                    ScrollToLine(SettingsManager.Instance.ReadSettings.LastFileLineNum, SettingsManager.Instance.ReadSettings.LastFileChapter);
+                    LoadDefaultContent(SettingsManager.Instance.ReadSettings.LastFileLineNum);
                 }
             }
             catch (FileNotFoundException e)
             {
-                MessageBox.Show("你上次阅读的文件： " + e.FileName + " 找不到了，看个别的吧。", "读取文件错误！");
-
-                // reset settings
                 SettingsManager.Instance.ReadSettings.LastFilePath = "";
-                SettingsManager.Instance.ReadSettings.LastFileChapter = -1;
                 SettingsManager.Instance.ReadSettings.LastFileLineNum = -1;
+                MessageBox.Show("你上次阅读的文件： " + e.FileName + " 找不到了", "读取文件错误！");
             }
         }
 
-        private void LoadFile(string filename)
+        private bool OpenAndLoadFile(string path)
         {
-            try
+            if (String.IsNullOrEmpty(path))
             {
-                if (OpenAndLoadFile(filename))
-                {
-                    ScrollToLine(0, 0);
+                return false;
+            }
 
-                    // save to settings
-                    SettingsManager.Instance.ReadSettings.LastFilePath = filename;
-                    SettingsManager.Instance.ReadSettings.LastFileChapter = 0;
-                    SettingsManager.Instance.ReadSettings.LastFileLineNum = 0;
+            this.m_NovelConents.Clear();
+            this.m_CurNovelContents.Clear();
+            this.m_NovelChapters.Clear();
+
+            NovelFile.Open(path, this.m_NovelConents);
+            foreach (Content c in this.m_NovelConents)
+            {
+                if (c.IsHeader)
+                {
+                    this.m_NovelChapters.Add(c);
                 }
             }
-            catch (FileNotFoundException e)
-            {
-                MessageBox.Show("你选择的文件： " + e.FileName + " 读取遇到了问题。", "读取文件错误！");
 
-                // reset settings
-                SettingsManager.Instance.ReadSettings.LastFilePath = "";
-                SettingsManager.Instance.ReadSettings.LastFileChapter = -1;
-                SettingsManager.Instance.ReadSettings.LastFileLineNum = -1;
+            return true;
+        }
+
+        private void LoadDefaultContent(int lineNum)
+        {
+            if (lineNum < m_NovelConents.Count)
+            {
+                m_CurNovelContents.Clear();
+                Content lastContent = m_NovelConents[lineNum];
+                for (int i = 0; i < m_NovelConents.Count; i++)
+                {
+                    if (m_NovelConents[i].Chapter == lastContent.Chapter - 1 ||
+                        m_NovelConents[i].Chapter == lastContent.Chapter)
+                    {
+                        m_CurNovelContents.Add(m_NovelConents[i]);
+                    }
+                }
+                ParagraphListBox.SelectedIndex = m_CurNovelContents.Count - 1;
+                ParagraphListBox.ScrollIntoView(ParagraphListBox.SelectedItem);
+                ParagraphListBox.UpdateLayout();
+                ParagraphListBox.ScrollIntoView(lastContent);
             }
         }
 
@@ -463,5 +481,21 @@ namespace FreeReader
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// 判断章节是否存在比对类
+    /// </summary>
+    public class IndexIsExistComparer : IEqualityComparer<Content>
+    {
+        public bool Equals(Content x, Content y)
+        {
+            return x.Chapter == y.Chapter;
+        }
+
+        public int GetHashCode(Content obj)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

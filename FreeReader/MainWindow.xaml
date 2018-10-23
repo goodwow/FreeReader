@@ -86,7 +86,7 @@
                     <MenuItem Header="30%"  IsCheckable="True" IsChecked="{Binding Path=ReadSettings.BackgroundOpacity, Converter={StaticResource menuIsCheckConverter}, ConverterParameter=0.3}"/>
                     <MenuItem Header="20%"  IsCheckable="True" IsChecked="{Binding Path=ReadSettings.BackgroundOpacity, Converter={StaticResource menuIsCheckConverter}, ConverterParameter=0.2}"/>
                     <MenuItem Header="10%"  IsCheckable="True" IsChecked="{Binding Path=ReadSettings.BackgroundOpacity, Converter={StaticResource menuIsCheckConverter}, ConverterParameter=0.1}"/>
-                    <MenuItem Header="0%"   IsCheckable="True" IsChecked="{Binding Path=ReadSettings.BackgroundOpacity, Converter={StaticResource menuIsCheckConverter}, ConverterParameter=0.01}"/>
+                    <MenuItem Header="0%"   IsCheckable="True" IsChecked="{Binding Path=ReadSettings.BackgroundOpacity, Converter={StaticResource menuIsCheckConverter}, ConverterParameter=0.005}"/>
                 </MenuItem>
                 <MenuItem Header="字体不透明度">
                     <MenuItem Header="100%" IsCheckable="True" IsChecked="{Binding Path=ReadSettings.FontOpacity, Converter={StaticResource menuIsCheckConverter}, ConverterParameter=1}"/>
@@ -99,7 +99,7 @@
                     <MenuItem Header="30%"  IsCheckable="True" IsChecked="{Binding Path=ReadSettings.FontOpacity, Converter={StaticResource menuIsCheckConverter}, ConverterParameter=0.3}"/>
                     <MenuItem Header="20%"  IsCheckable="True" IsChecked="{Binding Path=ReadSettings.FontOpacity, Converter={StaticResource menuIsCheckConverter}, ConverterParameter=0.2}"/>
                     <MenuItem Header="10%"  IsCheckable="True" IsChecked="{Binding Path=ReadSettings.FontOpacity, Converter={StaticResource menuIsCheckConverter}, ConverterParameter=0.1}"/>
-                    <MenuItem Header="0%"   IsCheckable="True" IsChecked="{Binding Path=ReadSettings.FontOpacity, Converter={StaticResource menuIsCheckConverter}, ConverterParameter=0.01}"/>
+                    <MenuItem Header="0%"   IsCheckable="True" IsChecked="{Binding Path=ReadSettings.FontOpacity, Converter={StaticResource menuIsCheckConverter}, ConverterParameter=0.005}"/>
                 </MenuItem>
                 <MenuItem Header="设置" Click="Settings_Click"/>
                 <MenuItem Header="退出" Click="Exit_Click"/>
@@ -155,13 +155,12 @@
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      Background="{StaticResource ListBackground}"
                      Foreground="{StaticResource ListFontColor}"
-                     ItemsSource="{Binding NovelHeaders, ElementName=Main}"
+                     ItemsSource="{Binding NovelChapters, ElementName=Main}"
                      ItemTemplate="{StaticResource HeaderTemplate}"
                      Visibility="{Binding ReadSettings.IsCatalogShow, Converter={StaticResource boolToVisibilityConverter}}"
-                     KeyDown="HeaderListBox_KeyDown"
                      MouseDoubleClick="HeaderListBox_MouseDoubleClick"/>
 
-            <GridSplitter HorizontalAlignment="Left" Width="1" Grid.Column="1" 
+            <GridSplitter HorizontalAlignment="Left" Width="1" Grid.Column="1" Background="{StaticResource ListBackground}"
                           Visibility="{Binding ElementName=HeaderListBox, Path=Visibility}"/>
 
             <ListBox Grid.Column="1" x:Name="ParagraphListBox" Margin="1,0,0,0" BorderBrush="Transparent"
@@ -170,8 +169,6 @@
                      Foreground="{StaticResource ListFontColor}"
                      ItemsSource="{Binding CurNovelContents, ElementName=Main}"
                      ItemTemplate="{StaticResource ParagraphTemplate}"
-                     KeyDown="ParagraphListBox_KeyDown"
-                     SelectionChanged="ParagraphListBox_SelectionChanged"
                      Drop="ParagraphListBox_Drop"
                      ScrollViewer.ScrollChanged="ParagraphListBox_ScrollChanged"/>
         </Grid>

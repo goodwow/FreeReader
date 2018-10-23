@@ -80,12 +80,7 @@ namespace FreeReader
         /// 上次打开文件路径(变量)
         /// </summary>
         private string lastFilePath = "";
-
-        /// <summary>
-        /// 上次文件阅读章节(变量)
-        /// </summary>
-        private int lastFileChapter = -1;
-
+        
         /// <summary>
         /// 上次文件阅读行数(变量)
         /// </summary>
@@ -325,22 +320,6 @@ namespace FreeReader
             get
             {
                 return lastFilePath;
-            }
-        }
-
-        /// <summary>
-        /// 上次文件阅读章节
-        /// </summary>
-        public int LastFileChapter
-        {
-            set
-            {
-                lastFileChapter = value;
-                NotifyPropertyChange("LastFileChapter");
-            }
-            get
-            {
-                return lastFileChapter;
             }
         }
 

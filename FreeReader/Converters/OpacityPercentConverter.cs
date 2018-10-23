@@ -20,7 +20,7 @@ namespace FreeReader
         {
             string optValue = ((string)value).Replace("%", "");
             double opacity = CommonConvert.ToDouble(optValue) / 100.0;
-            opacity = opacity <= 0 ? 0.01 : opacity;
+            opacity = opacity <= 0 ? 0.005 : opacity;
 
             return opacity;
         }

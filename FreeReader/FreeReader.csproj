@@ -121,13 +121,7 @@
     <Compile Include="Utils\CommonConvert.cs" />
     <Compile Include="Models\ChapterMatcher.cs" />
     <Compile Include="Models\Content.cs" />
-    <Compile Include="Models\ListBoxWrapper.cs" />
     <Compile Include="Models\NovelFile.cs" />
-    <Compile Include="Models\Reader.cs" />
-    <Compile Include="Models\Sidebar.cs" />
-    <Compile Include="Utils\HeaderListBoxKeyHandler.cs" />
-    <Compile Include="Utils\KeyHandler.cs" />
-    <Compile Include="Utils\ParagraphListBoxKeyHandler.cs" />
     <Page Include="ColorFont\ColorFontChooser.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
