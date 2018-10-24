@@ -173,7 +173,13 @@ namespace FreeReader
                     //判断是否滚动到顶部
                     if (e.VerticalOffset == 0 && e.VerticalChange != 0)
                     {
-                        AddContentToRead(m_CurNovelContents[0], e.VerticalChange <= 0);
+                        Content curContent = m_CurNovelContents[0];
+                        AddContentToRead(curContent, e.VerticalChange <= 0);
+
+                        ParagraphListBox.SelectedIndex = m_CurNovelContents.Count - 1;
+                        ParagraphListBox.ScrollIntoView(ParagraphListBox.SelectedItem);
+                        ParagraphListBox.UpdateLayout();
+                        ParagraphListBox.ScrollIntoView(curContent);
                     }
                 }
                 else
