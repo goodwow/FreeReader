@@ -82,7 +82,6 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\OpacityPercentConverter.cs" />
-    <Compile Include="Converters\CatalogCellWidthConverter.cs" />
     <Compile Include="ColorFont\AvailableColors.cs" />
     <Compile Include="ColorFont\ColorFontChooser.xaml.cs">
       <DependentUpon>ColorFontChooser.xaml</DependentUpon>

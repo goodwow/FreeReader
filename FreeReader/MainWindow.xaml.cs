@@ -99,6 +99,18 @@ namespace FreeReader
                 case "BackgroundOpacity":
                     SetWindowOpacity();
                     break;
+                case "IsCatalogShow":
+                    if (SettingsManager.Instance.ReadSettings.IsCatalogShow)
+                    {
+                        gridBody.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star);
+                        gridBody.ColumnDefinitions[1].Width = new GridLength(3, GridUnitType.Star);
+                    }
+                    else
+                    {
+                        gridBody.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Auto);
+                        gridBody.ColumnDefinitions[1].Width = new GridLength(3, GridUnitType.Star);
+                    }
+                    break;
                 default:
                     break;
             }

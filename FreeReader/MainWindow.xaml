@@ -22,7 +22,6 @@
 
             <local:BooleanToVisibilityConverter x:Key="boolToVisibilityConverter" />
             <local:MenuIsCheckConverter x:Key="menuIsCheckConverter" />
-            <local:CatalogCellWidthConverter x:Key="catalogCellWidthConverter" />
 
             <!-- ListBoxItem选中后样式 -->
             <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{Binding Path=ReadSettings.SelectedBackground, ElementName=MainModel}" />
@@ -147,7 +146,7 @@
 
         <Grid Grid.Row="1" x:Name="gridBody">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="{Binding ReadSettings.IsCatalogShow, Converter={StaticResource catalogCellWidthConverter}}"/>
+                <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="3*"/>
             </Grid.ColumnDefinitions>
 
