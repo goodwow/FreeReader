@@ -9,7 +9,7 @@ namespace FreeReader.Models
 {
     public class ChapterMatcher
     {
-        static Regex chapterRegex = new Regex(@"(?:^\s*|^\s*第.*?)(第[^\s,.，。]*?[章篇]\s?.*)");
+        static Regex chapterRegex = new Regex(@"(?:^\s*|^\s*第.*?)(第[^\s,.，。]*?[章篇回话节]\s?.*)");
 
         public static Match Exec(string text)
         {

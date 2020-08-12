@@ -77,5 +77,10 @@ namespace FreeReader
                 writer.Write(configJson);
             }
         }
+
+        public void SettingDefault()
+        {
+            m_ReadSettings = new SettingsModel();
+        }
     }
 }

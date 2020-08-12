@@ -346,8 +346,7 @@ namespace FreeReader
             }
             catch (FileNotFoundException e)
             {
-                SettingsManager.Instance.ReadSettings.LastFilePath = "";
-                SettingsManager.Instance.ReadSettings.LastFileLineNum = -1;
+                SettingsManager.Instance.SettingDefault();
                 MessageBox.Show("你选择的文件： " + e.FileName + " 读取遇到了问题。", "读取文件错误！");
             }
         }
@@ -363,8 +362,7 @@ namespace FreeReader
             }
             catch (FileNotFoundException e)
             {
-                SettingsManager.Instance.ReadSettings.LastFilePath = "";
-                SettingsManager.Instance.ReadSettings.LastFileLineNum = -1;
+                SettingsManager.Instance.SettingDefault();
                 MessageBox.Show("你上次阅读的文件： " + e.FileName + " 找不到了", "读取文件错误！");
             }
         }
