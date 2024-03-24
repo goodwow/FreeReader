@@ -12,7 +12,7 @@ namespace FreeReader
 {
     public class SettingsManager
     {
-        private readonly string m_JsonPath = AppDomain.CurrentDomain.BaseDirectory + "config/setting.json";
+        private readonly string m_JsonPath = AppDomain.CurrentDomain.BaseDirectory + "setting.json";
 
         private static SettingsManager m_Instance;
         private SettingsModel m_ReadSettings;
@@ -45,6 +45,25 @@ namespace FreeReader
         public void LoadSettings()
         {
             m_ReadSettings = JsonHelper.LoadJsonToObject<SettingsModel>(this.m_JsonPath);
+            if (m_ReadSettings == null)
+            {
+                String settingJson = @"{
+                    ""FontColor"": ""#AEF0FFFF"",
+                    ""Background"": ""#17000000"",
+                    ""FontSize"": 16.958963282937358,
+                    ""FontFamily"": ""Arial"",
+                    ""FontStretch"": ""Normal"",
+                    ""FontStyle"": ""Normal"",
+                    ""FontWeight"": ""Normal"",
+                    ""FontOpacity"": 0.68624190064794821,
+                    ""BackgroundOpacity"": 0.093110151187905,
+                    ""SelectedBackground"": ""#FF000000"",
+                    ""SelectedFontColor"": ""#FFF0FFFF"",
+                    ""WindowWidth"": 638.0,
+                    ""WindowHeight"": 522.0
+                }";
+                m_ReadSettings = JsonHelper.DeserializeJsonToObject<SettingsModel>(settingJson);
+            }
         }
 
         public void SaveSettings()

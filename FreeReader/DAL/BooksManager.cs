@@ -12,7 +12,7 @@ namespace FreeReader
 {
     public class BooksManager
     {
-        private readonly string m_JsonPath = AppDomain.CurrentDomain.BaseDirectory + "config/books.json";
+        private readonly string m_JsonPath = AppDomain.CurrentDomain.BaseDirectory + "books.json";
 
         private static BooksManager m_Instance;
         private List<Book> m_BookList;
